@@ -20,13 +20,24 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 			getZoomScale: function(){return zoomScale;},
 			getPt_origin: function(){return pt_origin.slice();},
 			// getCanvas: function(){return canvas;},
-			getCtx: function(){return ctx;}
+			getCtx: function(){return ctx;},
+			angle: 0
 		};
 	})();
 
-	drawAxes();
-	drawSine();
-	drawCircle();
+	animate();
+
+	function animate(){
+		var ctx = gbl.getCtx();
+		ctx.clearRect(0, 0, gbl.getWidth(), gbl.getHeight());
+		
+		drawAxes();
+		drawCircle();
+		drawSine(gbl.angle);
+		
+		gbl.angle += .05;
+		setTimeout(animate, 50);
+	}
 
 	function drawAxes(){
 		// x轴，y轴终点
@@ -37,6 +48,7 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 
 		// 绘制: 原点和x、y轴的终点连线
 		var ctx = gbl.getCtx();
+		ctx.beginPath();
 		transResult.forEach(function(pt_end){
 			ctx.moveTo(pt_origin[0], pt_origin[1]);
 			ctx.lineTo(pt_end[0], pt_end[1]);
@@ -44,11 +56,12 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 		ctx.stroke();
 	}
 
-	function drawSine(){
+	// f(x) = sin(x), g(x) = x + angle, 计算f(g(x))
+	function drawSine(angle){
 	　　// 根据采样范围，采样值，确定x轴样品集
 		var sampleSet = sampleUtils.gatherSamples(gbl.getSampleRange(), gbl.getSampleCount());
-		// 调用sine函数求出点集
-		var pointSet = sampleSet.map(v=>[v, Math.sin(v)]);
+		// 变换自变量，调用sine函数求出点集
+		var pointSet = sampleSet.map(v=>[v, Math.sin(v + angle)]);
 		// 缩放（等比放大）
 		pointSet = pointSet.map(zoom);
 		// 转换为canvas坐标系
@@ -57,6 +70,7 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 		// 绘制
 		var pt_start = pointSet.shift();
 		var ctx = gbl.getCtx();
+		ctx.beginPath();
 		ctx.moveTo(pt_start[0], pt_start[1]);
 		pointSet.forEach(v=>ctx.lineTo(v[0], v[1]));
 		ctx.stroke();
@@ -64,6 +78,7 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 
 	function drawCircle(){
 		var ctx = gbl.getCtx();
+		ctx.beginPath();
 		var pt_origin = gbl.getPt_origin();
 		ctx.arc(pt_origin[0], pt_origin[1], gbl.getZoomScale(), 0, Math.PI * 2, true);
 		ctx.stroke();
