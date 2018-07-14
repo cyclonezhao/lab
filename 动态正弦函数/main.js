@@ -26,18 +26,14 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 
 	drawAxes();
 	drawSine();
-
-	function test(){
-		console.log("test1");
-	}
+	drawCircle();
 
 	function drawAxes(){
 		// x轴，y轴终点
-		// var pt_x = [width - 100, 0], pt_y = [0, height - 100];
-		var pt_x = [400, 0], pt_y = [0, 100];
+		var pt_x = [gbl.getSampleRange(), 0], pt_y = [0, 2];
 		var pt_origin = gbl.getPt_origin();
-		// 转换为canvas坐标
-		var transResult = [pt_x, pt_y].map(v=>canvasCoord.transform(pt_origin, v));
+		// 缩放，转换为canvas坐标
+		var transResult = [pt_x, pt_y].map(zoom).map(v=>canvasCoord.transform(pt_origin, v));
 
 		// 绘制: 原点和x、y轴的终点连线
 		var ctx = gbl.getCtx();
@@ -54,7 +50,7 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 		// 调用sine函数求出点集
 		var pointSet = sampleSet.map(v=>[v, Math.sin(v)]);
 		// 缩放（等比放大）
-		pointSet = pointSet.map(v=>[v[0] * gbl.getZoomScale(), v[1] * gbl.getZoomScale()]);
+		pointSet = pointSet.map(zoom);
 		// 转换为canvas坐标系
 		pointSet = pointSet.map(v=>canvasCoord.transform(gbl.getPt_origin(), v));
 		
@@ -64,5 +60,16 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 		ctx.moveTo(pt_start[0], pt_start[1]);
 		pointSet.forEach(v=>ctx.lineTo(v[0], v[1]));
 		ctx.stroke();
+	}
+
+	function drawCircle(){
+		var ctx = gbl.getCtx();
+		var pt_origin = gbl.getPt_origin();
+		ctx.arc(pt_origin[0], pt_origin[1], gbl.getZoomScale(), 0, Math.PI * 2, true);
+		ctx.stroke();
+	}
+
+	function zoom(point){
+		return [point[0] * gbl.getZoomScale(), point[1] * gbl.getZoomScale()];
 	}
 });
