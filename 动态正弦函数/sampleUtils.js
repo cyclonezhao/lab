@@ -1,6 +1,7 @@
 define(function (){
 　　return {
-		sample: function(sampleRange, sampleCount){
+		// 采样
+		gatherSamples: function(sampleRange, sampleCount){
 			var sampleSet = [];
 			var unitSample = sampleRange;
 			if(sampleCount > 1){
@@ -10,34 +11,10 @@ define(function (){
 				sampleSet.push(unitSample * i);
 			}
 
+			// 消除精度问题，最后一个样品值强制等于采样区间的上界
 			var last = sampleSet.pop();
 			sampleSet.push(sampleRange);
 			return sampleSet;
-		},
-		calculate: function(sampleSet, fn){
-			var pointSet = [];
-			var count = sampleSet.length;
-			for(var i = 0; i < count; i++){
-				pointSet.push([sampleSet[i], fn.call(this, sampleSet[i])]);
-			}
-			return pointSet;
-
-		},
-		zoom: function(pointSet, scale){
-			var newPointSet = [];
-			var count = pointSet.length;
-			for(var i = 0; i < count; i++){
-				newPointSet.push([pointSet[i][0] * scale, pointSet[i][1] * scale]);
-			}
-			return newPointSet;
-		},
-		translate: function(pointSet, offset){
-			var newPointSet = [];
-			var count = pointSet.length;
-			for(var i = 0; i < count; i++){
-				newPointSet.push([pointSet[i][0] + offset[0], pointSet[i][1] + offset[1]]);
-			}
-			return newPointSet;
 		}
 　　};
 });

@@ -1,34 +1,68 @@
-define(['sampleUtils'], function (sampleUtils){
-　　var canvas = document.getElementById("sineCanvas");
-	canvas.width = 1280;
-	canvas.height = 300;
-
-	// TODO 全局变量
-	var sampleRange = 2 * Math.PI; //采样范围
-	var sampleCount = 60; // 采样值
-	var scale = 50;
-	var offset = [100, 200];
-
-	function draw(pointSet){
+define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
+	// 全局变量
+	var gbl = (function(){
+		var width = 1280;
+		var height = 300;
+		var sampleRange = 2 * Math.PI; //采样范围
+		var sampleCount = 60; // 采样值
+		var zoomScale = 50;
+		var pt_origin = [100, 200]; // 逻辑坐标系原点相对canvas坐标系的坐标值
+	　　var canvas = document.getElementById("sineCanvas");
 		var ctx = canvas.getContext("2d");
-		var point = pointSet[0];
-		ctx.moveTo(point[0], point[1]);
-		var count = pointSet.length;
-		for(var i = 1; i < count; i++){
-			point = pointSet[i];
-			ctx.lineTo(point[0], point[1]);
-		}
+		canvas.width = width;
+		canvas.height = height;
+
+		return{
+			getWidth: function(){return width;},
+			getHeight: function(){return height;},
+			getSampleRange: function(){return sampleRange;},
+			getSampleCount: function(){return sampleCount;},
+			getZoomScale: function(){return zoomScale;},
+			getPt_origin: function(){return pt_origin.slice();},
+			// getCanvas: function(){return canvas;},
+			getCtx: function(){return ctx;}
+		};
+	})();
+
+	drawAxes();
+	drawSine();
+
+	function test(){
+		console.log("test1");
+	}
+
+	function drawAxes(){
+		// x轴，y轴终点
+		// var pt_x = [width - 100, 0], pt_y = [0, height - 100];
+		var pt_x = [400, 0], pt_y = [0, 100];
+		var pt_origin = gbl.getPt_origin();
+		// 转换为canvas坐标
+		var transResult = [pt_x, pt_y].map(v=>canvasCoord.transform(pt_origin, v));
+
+		// 绘制: 原点和x、y轴的终点连线
+		var ctx = gbl.getCtx();
+		transResult.forEach(function(pt_end){
+			ctx.moveTo(pt_origin[0], pt_origin[1]);
+			ctx.lineTo(pt_end[0], pt_end[1]);
+		});
 		ctx.stroke();
 	}
 
-　　// 根据采样范围，采样值，确定x轴样品集
-	var sampleSet = sampleUtils.sample(sampleRange, sampleCount);
-	// 调用sine函数求出点集
-	var pointSet = sampleUtils.calculate(sampleSet, Math.sin);
-	// 缩放
-	pointSet = sampleUtils.zoom(pointSet, scale);
-	// 平移
-	pointSet = sampleUtils.translate(pointSet, offset);
-	// 绘制
-	draw(pointSet);
+	function drawSine(){
+	　　// 根据采样范围，采样值，确定x轴样品集
+		var sampleSet = sampleUtils.gatherSamples(gbl.getSampleRange(), gbl.getSampleCount());
+		// 调用sine函数求出点集
+		var pointSet = sampleSet.map(v=>[v, Math.sin(v)]);
+		// 缩放（等比放大）
+		pointSet = pointSet.map(v=>[v[0] * gbl.getZoomScale(), v[1] * gbl.getZoomScale()]);
+		// 转换为canvas坐标系
+		pointSet = pointSet.map(v=>canvasCoord.transform(gbl.getPt_origin(), v));
+		
+		// 绘制
+		var pt_start = pointSet.shift();
+		var ctx = gbl.getCtx();
+		ctx.moveTo(pt_start[0], pt_start[1]);
+		pointSet.forEach(v=>ctx.lineTo(v[0], v[1]));
+		ctx.stroke();
+	}
 });
