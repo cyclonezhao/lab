@@ -2,11 +2,11 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 	// 全局变量
 	var gbl = (function(){
 		var width = 1280;
-		var height = 300;
+		var height = 1024;
 		var sampleRange = 2 * Math.PI; //采样范围
 		var sampleCount = 60; // 采样值
-		var zoomScale = 50;
-		var pt_origin = [100, 200]; // 逻辑坐标系原点相对canvas坐标系的坐标值
+		var zoomScale = 100;
+		var pt_origin = [300, 400]; // 逻辑坐标系原点相对canvas坐标系的坐标值
 	　　var canvas = document.getElementById("sineCanvas");
 		var ctx = canvas.getContext("2d");
 		canvas.width = width;
@@ -34,6 +34,7 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 		drawAxes();
 		drawCircle();
 		drawSine(gbl.angle);
+		drawIndicator(gbl.angle);
 		
 		gbl.angle += .05;
 		setTimeout(animate, 50);
@@ -44,15 +45,16 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 		var pt_x = [gbl.getSampleRange(), 0], pt_y = [0, 2];
 		var pt_origin = gbl.getPt_origin();
 		// 缩放，转换为canvas坐标
-		var transResult = [pt_x, pt_y].map(zoom).map(v=>canvasCoord.transform(pt_origin, v));
+		var transResult_start = [[-2, 0], [0, -2]].map(zoom).map(v=>canvasCoord.transform(pt_origin, v));
+		var transResult_end = [pt_x, pt_y].map(zoom).map(v=>canvasCoord.transform(pt_origin, v));
 
 		// 绘制: 原点和x、y轴的终点连线
 		var ctx = gbl.getCtx();
 		ctx.beginPath();
-		transResult.forEach(function(pt_end){
-			ctx.moveTo(pt_origin[0], pt_origin[1]);
-			ctx.lineTo(pt_end[0], pt_end[1]);
-		});
+		for(var i = 0; i < 2; i++){
+			ctx.moveTo(transResult_start[i][0], transResult_start[i][1]);
+			ctx.lineTo(transResult_end[i][0], transResult_end[i][1]);
+		}
 		ctx.stroke();
 	}
 
@@ -81,6 +83,56 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 		ctx.beginPath();
 		var pt_origin = gbl.getPt_origin();
 		ctx.arc(pt_origin[0], pt_origin[1], gbl.getZoomScale(), 0, Math.PI * 2, true);
+		ctx.stroke();
+	}
+
+	function drawIndicator(angle){
+		var pt_origin = gbl.getPt_origin();
+		var endPoint = [Math.cos(angle), Math.sin(angle)];
+		endPoint = canvasCoord.transform(pt_origin, zoom(endPoint));
+		var ctx = gbl.getCtx();
+		ctx.beginPath();
+		ctx.moveTo(pt_origin[0], pt_origin[1]);
+		ctx.lineTo(endPoint[0], endPoint[1]);
+		ctx.stroke();
+
+		drawDash(endPoint, [pt_origin[0], endPoint[1]]);
+	}
+
+	function drawDash(startPoint, endPoint){
+		var delta_x = endPoint[0] - startPoint[0];
+		var delta_y = endPoint[1] - startPoint[1];
+		var dir = delta_x / Math.abs(delta_x);
+		var r = Math.abs(delta_y) / Math.abs(delta_x);
+		var d = 5 * dir;
+		var count = Math.ceil(Math.abs(delta_x) / (2 * Math.abs(d)));
+		var point_pairs = [];
+
+		for(var i = 0; i < count - 1; i++){
+			var p1 = 2 * i * d;
+			var p2 = (2 * i + 1) * d;
+			point_pairs.push([
+				[p1 + startPoint[0], p1 * r + startPoint[1]], 
+				[p2 + startPoint[0], p2 * r + startPoint[1]]
+			]);
+		}
+
+		// 处理最后一段
+		var i = count - 1;
+		var p1 = 2 * i * d;
+		var p2 = Math.min(Math.abs((2 * i + 1) * d), Math.abs(endPoint[0] - startPoint[0])) * dir;
+		point_pairs.push([
+			[p1 + startPoint[0], p1 * r + startPoint[1]], 
+			[p2 + startPoint[0], p2 * r + startPoint[1]]
+		]);
+
+		// 绘制
+		var ctx = gbl.getCtx();
+		ctx.beginPath();
+		point_pairs.forEach(function(point_pair){
+			ctx.moveTo(point_pair[0][0], point_pair[0][1]);
+			ctx.lineTo(point_pair[1][0], point_pair[1][1]);
+		});
 		ctx.stroke();
 	}
 
