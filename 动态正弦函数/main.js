@@ -1,4 +1,4 @@
-define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
+define(['../common/sampleUtils', '../common/canvasCoord', '../common/graph'], function (sampleUtils, canvasCoord, graph){
 	// 全局变量
 	var gbl = (function(){
 		var width = 1280;
@@ -137,6 +137,6 @@ define(['sampleUtils', 'canvasCoord'], function (sampleUtils, canvasCoord){
 	}
 
 	function zoom(point){
-		return [point[0] * gbl.getZoomScale(), point[1] * gbl.getZoomScale()];
+		return graph.zoom(point, [gbl.getZoomScale(), gbl.getZoomScale()]);
 	}
 });
