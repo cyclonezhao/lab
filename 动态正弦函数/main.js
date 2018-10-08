@@ -4,7 +4,7 @@ define(['../common/sampleUtils', '../common/canvasCoord', '../common/graph'], fu
 		var width = 1280;
 		var height = 1024;
 		var sampleRange = 2 * Math.PI; //采样范围
-		var sampleCount = 60; // 采样值
+		var sampleCount = 120; // 采样值
 		var zoomScale = 100;
 		var pt_origin = [300, 400]; // 逻辑坐标系原点相对canvas坐标系的坐标值
 	　　var canvas = document.getElementById("sineCanvas");
@@ -36,8 +36,8 @@ define(['../common/sampleUtils', '../common/canvasCoord', '../common/graph'], fu
 		drawSine(gbl.angle);
 		drawIndicator(gbl.angle);
 		
-		gbl.angle += .05;
-		setTimeout(animate, 50);
+		gbl.angle += .03;
+		setTimeout(animate, 100);
 	}
 
 	function drawAxes(){
@@ -63,7 +63,8 @@ define(['../common/sampleUtils', '../common/canvasCoord', '../common/graph'], fu
 	　　// 根据采样范围，采样值，确定x轴样品集
 		var sampleSet = sampleUtils.gatherSamples(gbl.getSampleRange(), gbl.getSampleCount());
 		// 变换自变量，调用sine函数求出点集
-		var pointSet = sampleSet.map(v=>[v, Math.sin(v + angle)]);
+		// var pointSet = sampleSet.map(v=>[v, Math.sin(v + angle)]);
+		var pointSet = sampleSet.map(v=>[v, fn(v + angle)]);
 		// 缩放（等比放大）
 		pointSet = pointSet.map(zoom);
 		// 转换为canvas坐标系
@@ -76,6 +77,17 @@ define(['../common/sampleUtils', '../common/canvasCoord', '../common/graph'], fu
 		ctx.moveTo(pt_start[0], pt_start[1]);
 		pointSet.forEach(v=>ctx.lineTo(v[0], v[1]));
 		ctx.stroke();
+	}
+
+	function fn(x){
+		var PI = Math.PI;
+		var sin = Math.sin;
+		var fn1 = 4 * sin(x) / PI;
+		var fn2 = 4 * sin(3*x) / (3*PI);
+		var fn3 = 4 * sin(5*x) / (5*PI);
+		var fn4 = 4 * sin(7*x) / (7*PI);
+		var fn5 = 4 * sin(9*x) / (9*PI);
+		return fn1+fn2+fn3+fn4+fn5;
 	}
 
 	function drawCircle(){
