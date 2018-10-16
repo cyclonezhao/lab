@@ -15,7 +15,16 @@ define(["graph"], function (graph){
 		var y_bottom = {x: origin.x, y: height-padding};
 		graph.drawLine(x_left, x_right);
 		graph.drawLine(y_top, y_bottom);
+
+		var p= translate(zoom({x:0, y:0}));
+		graph.drawPoint(p);
 	}
+
+	function _drawText(p, text, fontSize, color){
+		p= translate(zoom(p));
+		graph.drawText(p, text, fontSize, color);
+	}
+
 
 	function zoom(p){
 		return {
@@ -48,13 +57,20 @@ define(["graph"], function (graph){
 
 			drawAxis();
 		},
-		drawLine: function(p1, p2){
+		drawLine: function(p1, p2, color){
 			var pointSet = [p1, p2].map(zoom).map(translate);
-			graph.drawLine(pointSet[0], pointSet[1]);
+			graph.drawLine(pointSet[0], pointSet[1], color);
 		},
-		drawPoint: function(p){
+		drawPoint: function(p, color){
 			p= translate(zoom(p));
-			graph.drawPoint(p);
+			graph.drawPoint(p, color);
+		},
+		drawPolyline: function(pointSet, color){
+			pointSet = pointSet.map(zoom).map(translate);
+			graph.drawPolyline(pointSet, color);
+		},
+		drawText: function(p, text, fontSize, color){
+			_drawText(p, text, fontSize, color);
 		}
 	};
 });
