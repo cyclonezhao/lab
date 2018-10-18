@@ -15,9 +15,6 @@ define(["graph"], function (graph){
 		var y_bottom = {x: origin.x, y: height-padding};
 		graph.drawLine(x_left, x_right);
 		graph.drawLine(y_top, y_bottom);
-
-		var p= translate(zoom({x:0, y:0}));
-		graph.drawPoint(p);
 	}
 
 	function _drawText(p, text, fontSize, color){
